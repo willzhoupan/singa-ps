@@ -19,7 +19,7 @@ Prepare mxnet library:
 How to configure singa-ps?
 1. copy the folder "python/mxnet" from mxnet source directory into the working directory of singa.
 2. copy "singa_kvstore.py" and "SingaOpt.py" into the working directory of singa.
-3. replace "/mxnet/ndarray/ndarray.py" with a modified file from https://github.com/willzhoupan/singa-ps/blob/master/mxnet/ndarray/ndarray.py
+3. add a function "from_numpy(ndarray, device_id=0, zero_copy=True)" at the end of "/mxnet/ndarray/ndarray.py". Please see https://github.com/willzhoupan/singa-ps/blob/master/mxnet/ndarray/ndarray.py#L5056
 
 How to use singa-ps?  
 1. import singa_kvstore;
