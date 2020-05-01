@@ -12,7 +12,7 @@ Prepare mxnet library:
    (g) Wait for a long time, e.g., 3-4 hours
 3. Copy the built 'libmxnet.so' from '/lib' to '/python/mxnet'.
 
-*Notations:
+*Note that:
   (a)If you want to enable GPUs, the mxnet should compile with GPU options. Please refer to https://mxnet.apache.org/get_started/ubuntu_setup
   (b)The CUDA-version and cuDNN-version of singa and mxnet should be set to the same.
 
