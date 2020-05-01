@@ -11,6 +11,7 @@ Prepare mxnet library:
    (f) $make -j8 USE_BLAS=openblas
    (g) Wait for a long time, e.g., 3-4 hours
 3. Copy the built 'libmxnet.so' from '/lib' to '/python/mxnet'.
+
 *Notations:
   (a)If you want to enable GPUs, the mxnet should compile with GPU options. Please refer to https://mxnet.apache.org/get_started/ubuntu_setup
   (b)The CUDA-version and cuDNN-version of singa and mxnet should be set to the same.
@@ -18,7 +19,7 @@ Prepare mxnet library:
 How to configure singa-ps?
 1. copy the folder "python/mxnet" from mxnet source directory into the working directory of singa.
 2. copy "singa_kvstore.py" and "SingaOpt.py" into the working directory of singa.
-3. adding a function "from_numpy(ndarray, device_id=0, zero_copy=True)" at the end of "mxnet/ndarray/ndarray.py". Please see https://github.com/willzhoupan/singa-ps/blob/master/mxnet/ndarray/ndarray.py#L5056
+3. replace "/mxnet/ndarray/ndarray.py" with a modified file from https://github.com/willzhoupan/singa-ps/blob/master/mxnet/ndarray/ndarray.py
 
 How to use singa-ps?  
 1. import singa_kvstore;
