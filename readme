@@ -42,3 +42,11 @@ How to use singa-ps?
    #------------------------end example--------------------------------------------------------------------
 
 (mnist_cnn.py is a detailed example)
+
+How to launch the script?
+* The launch of the script is the same as mxnet, for example,
+  (1) two worker and One server at the same machine: 
+      $python3 ./launch/launch.py -n 2 -s 1 --launcher local python3 mnist_cnn.py
+  (2) Four worker and two server at different machines:
+      $python3 ./launch/launch.py -n 4 -s 2 -H hostfile --launcher ssh python3 mnist_cnn.py
+
