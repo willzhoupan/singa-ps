@@ -210,7 +210,7 @@ def train_mnist_cnn(DIST=False,
     num_classes = (np.max(train_y) + 1).item()
     model = resnet.resnet18(num_channels=1, num_classes=num_classes)
     '''
-    dev = device.get_default_device()
+    dev = device.create_cuda_gpu_on(kv.rank)
     #dev = device.create_cuda_gpu()
     tx = tensor.Tensor((batch_size, 1, IMG_SIZE, IMG_SIZE), dev, tensor.float32)
     ty = tensor.Tensor((batch_size, num_classes), dev, tensor.int32)
@@ -287,6 +287,8 @@ def train_mnist_cnn(DIST=False,
             for b in range(num_test_batch_inside):
                 x = test_x[b * batch_size:(b + 1) * batch_size]
                 y = test_y[b * batch_size:(b + 1) * batch_size]
+                if x.shape[0]!=tx.shape[0]:
+                   break
                 tx.copy_from_numpy(x)
                 ty.copy_from_numpy(y)
                 out_test = model.forward(tx)

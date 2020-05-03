@@ -28,22 +28,19 @@ def tensor2numpy_nocopy(t):
     return np_array
 
 is_kvInitial = False
-key_list = [] 
-value_list = []
 #model_pairs = []
 def backward_and_update(kv,loss):
-    global is_kvInitial,key_list,value_list
+    global is_kvInitial
     model_pairs = [] 
+    key_list = []
+    p_list = []
     if is_kvInitial != True:
        #Initial kv store for workers of ps-architecture
        key = 0
        for p, g in autograd.backward(loss):
-           np_p = tensor2numpy_nocopy(p)
-           mxnd_p = mx.nd.from_numpy(np_p,device_id=p.device.id(),zero_copy=True)
-           #kv_pairs.append((key,mxnd_p))
-           key_list.append(key)
-           value_list.append(mxnd_p)
+           mxnd_p = mx.nd.from_numpy(tensor.to_numpy(p),zero_copy=True)
            kv.init(key, mxnd_p)
+           model_pairs.append((key,p,g))
            key += 1  
        is_kvInitial = True
     else:     
@@ -52,47 +49,24 @@ def backward_and_update(kv,loss):
        #the following push and pull will optimized 
        #according to the performance
        for p, g in autograd.backward(loss):
-           np_g = tensor2numpy_nocopy(g)
-           mxnd_g = mx.nd.from_numpy(np_g,device_id=g.device.id(),zero_copy=True)
-           kv.push(key,mxnd_g)
-           model_pairs.append((key,p,g,mxnd_g))
-           key += 1
-       #pull 
-       kv.pull(key_list,out=value_list)
-       for item in value_list:
-           item.wait_to_read()
-       del model_pairs  
-
-def backward_and_update_cpu(kv,loss):
-    global is_kvInitial,key_list,value_list
-    model_pairs = [] 
-    if is_kvInitial != True:
-       #Initial kv store for workers of ps-architecture
-       key = 0
-       for p, g in autograd.backward(loss):
+           #create NDarray from p
+           #the created NDarray is used to receive pulled parameters with zero copy
            np_p = tensor2numpy_nocopy(p)
-           mxnd_p = mx.nd.from_numpy(np_p,zero_copy=True)
-           #kv_pairs.append((key,mxnd_p))
-           key_list.append(key)
-           value_list.append(mxnd_p)
-           kv.init(key, mxnd_p)
-           key += 1  
-       is_kvInitial = True
-    else:     
-       #push
-       key = 0
-       #the following push and pull will optimized 
-       #according to the performance
-       for p, g in autograd.backward(loss):
-           np_g = tensor2numpy_nocopy(g)
-           mxnd_g = mx.nd.from_numpy(np_g,zero_copy=True)
+           mxnd_p = mx.nd.from_numpy_nocopy(np_p,device_id=p.device.id(),zero_copy=True)
+           #copy g to CPU and create NDarray from CPU
+           #this can avoid creating memory on GPU0
+           g.to_host()
+           mxnd_g = mx.nd.from_numpy(tensor2numpy_nocopy(g),zero_copy=True)
            kv.push(key,mxnd_g)
-           model_pairs.append((key,p,g,mxnd_g))
+           key_list.append(key)
+           p_list.append(mxnd_p)
+           model_pairs.append((key,p,g))
            key += 1
        #pull 
-       kv.pull(key_list,out=value_list)
-       for item in value_list:
-           item.wait_to_read()
-       del model_pairs       
+       kv.pull(key_list,out=p_list)
+       mx.nd.waitall()
+       del model_pairs
+       del key_list
+       del p_list       
 #--------end ps API---------------------------------
 
